@@ -6,20 +6,16 @@
 # (C) 2013. All rights reserved.
 # License: Apache License v2 <https://www.apache.org/licenses/LICENSE-2.0.html>
 
-use 5.012;
-use encoding 'utf8', STDIN => 'utf8', STDOUT => 'utf8';
 use File::Basename;
-
-#use local::lib "~/perl5/lib/perl5";
-use Lingua::Stem::Snowball;
-my $stemmer = Lingua::Stem::Snowball->new( lang => 'en' );
-
 my $prog = basename($0);
-
 if ($#ARGV == 0 && $ARGV[0] =~/-h|--help/) {
   print STDERR "usage: $prog < TOKENS > STEMMED_TOKENS\n";
   exit 1;
 }
+
+use open ':locale';
+use Lingua::Stem::Snowball;
+my $stemmer = Lingua::Stem::Snowball->new( lang => 'en' );
 
 while (<>) {
   my @words = split;
