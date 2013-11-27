@@ -6,17 +6,18 @@
 # (C) 2013. All rights reserved.
 # License: Apache License v2 <https://www.apache.org/licenses/LICENSE-2.0.html>
 
-use 5.012;
-use encoding 'utf8', STDIN => 'utf8', STDOUT => 'utf8';
-use charnames ':full';
 use File::Basename;
-
 my $prog = basename($0);
-
 if ($#ARGV == 0 && $ARGV[0] =~/-h|--help/) {
-  print STDERR "usage: $prog < SENTENCES > TOKENS\n";
+  print STDERR "usage: $prog [--normal] < SENTENCES > TOKENS\n";
   exit 1;
 }
+
+use charnames 'greek';
+use open ':locale';
+
+my $NORMAL = ($#ARGV > -1 && $ARGV[0] =~ '--normal');
+shift @ARGV if ($#ARGV > -1 && $ARGV[0] =~ '--normal');
 
 while (<>) {
   # debugging output
@@ -29,86 +30,82 @@ while (<>) {
   s/&gt;/>/g;
   s/&nbsp;/ /g;
 
-  # basic space normalization
-  s/\t/ /g;  # normalize tabs to spaces
-  s/\xa0/ /g;  # normalize non-breaking spaces to spaces
-  s/_/ /g; # normalize underscores to spaces
-  s/^ +//;  # remove initial spaces
-
   # fix common "impurities"
   s/<\/?\w+>//g;  # remove infrequent HTML tag "contamination"
   s/'s\b//g;  # drop apostrophe-s
   s/n't\b/ not/g;  # fix "...n't" contractions
 
-  # lower-case capitalized words at line (sentence) start
-  if (/^\p{Lu}\p{Ll}*\b/) {$_=lcfirst;}
+  # basic space normalization
+  s/[\t\xA0_]/ /g;
 
   # translate Greek letters to latin names
-  s/\N{GREEK SMALL LETTER ALPHA}      /alpha/xg;
-  s/\N{GREEK SMALL LETTER BETA}       /beta/xg;
-  s/\N{GREEK SMALL LETTER GAMMA}      /gamma/xg;
-  s/\N{GREEK SMALL LETTER DELTA}      /delta/xg;
-  s/\N{GREEK SMALL LETTER EPSILON}    /epsilon/xg;
-  s/\N{GREEK SMALL LETTER ZETA}       /zeta/xg;
-  s/\N{GREEK SMALL LETTER ETA}        /eta/xg;
-  s/\N{GREEK SMALL LETTER THETA}      /theta/xg;
-  s/\N{GREEK SMALL LETTER IOTA}       /iota/xg;
-  s/\N{GREEK SMALL LETTER KAPPA}      /kappa/xg;
-  s/\N{GREEK SMALL LETTER LAMDA}      /lamda/xg;
-  s/\N{GREEK SMALL LETTER MU}         /mu/xg;
-  s/\N{GREEK SMALL LETTER NU}         /nu/xg;
-  s/\N{GREEK SMALL LETTER XI}         /xi/xg;
-  s/\N{GREEK SMALL LETTER OMICRON}    /omicron/xg;
-  s/\N{GREEK SMALL LETTER PI}         /pi/xg;
-  s/\N{GREEK SMALL LETTER RHO}        /rho/xg;
-  s/\N{GREEK SMALL LETTER FINAL SIGMA}/sigma/xg;
-  s/\N{GREEK SMALL LETTER SIGMA}      /sigma/xg;
-  s/\N{GREEK SMALL LETTER TAU}        /tau/xg;
-  s/\N{GREEK SMALL LETTER UPSILON}    /upsilon/xg;
-  s/\N{GREEK SMALL LETTER PHI}        /phi/xg;
-  s/\N{GREEK SMALL LETTER CHI}        /chi/xg;
-  s/\N{GREEK SMALL LETTER PSI}        /psi/xg;
-  s/\N{GREEK SMALL LETTER OMEGA}      /omega/xg;
+  s/\N{alpha}/alpha/g;
+  s/\N{beta}/beta/g;
+  s/\N{gamma}/gamma/g;
+  s/\N{delta}/delta/g;
+  s/\N{epsilon}/epsilon/g;
+  s/\N{zeta}/zeta/g;
+  s/\N{eta}/eta/g;
+  s/\N{theta}/theta/g;
+  s/\N{iota}/iota/g;
+  s/\N{kappa}/kappa/g;
+  s/\N{lamda}/lamda/g;
+  s/\N{mu}/mu/g;
+  s/\N{nu}/nu/g;
+  s/\N{xi}/xi/g;
+  s/\N{omicron}/omicron/g;
+  s/\N{pi}/pi/g;
+  s/\N{rho}/rho/g;
+  s/\N{final sigma}/sigma/g;
+  s/\N{sigma}/sigma/g;
+  s/\N{tau}/tau/g;
+  s/\N{upsilon}/upsilon/g;
+  s/\N{phi}/phi/g;
+  s/\N{chi}/chi/g;
+  s/\N{psi}/psi/g;
+  s/\N{omega}/omega/g;
   # uppercase
-  s/\N{GREEK CAPITAL LETTER ALPHA}    /Alpha/xg;
-  s/\N{GREEK CAPITAL LETTER BETA}     /Beta/xg;
-  s/\N{GREEK CAPITAL LETTER GAMMA}    /Gamma/xg;
-  s/\N{GREEK CAPITAL LETTER DELTA}    /Delta/xg;
-  s/\N{GREEK CAPITAL LETTER EPSILON}  /Epsilon/xg;
-  s/\N{GREEK CAPITAL LETTER ZETA}     /Zeta/xg;
-  s/\N{GREEK CAPITAL LETTER ETA}      /Eta/xg;
-  s/\N{GREEK CAPITAL LETTER THETA}    /Theta/xg;
-  s/\N{GREEK CAPITAL LETTER IOTA}     /Iota/xg;
-  s/\N{GREEK CAPITAL LETTER KAPPA}    /Kappa/xg;
-  s/\N{GREEK CAPITAL LETTER LAMDA}    /Lamda/xg;
-  s/\N{GREEK CAPITAL LETTER MU}       /Mu/xg;
-  s/\N{GREEK CAPITAL LETTER NU}       /Nu/xg;
-  s/\N{GREEK CAPITAL LETTER XI}       /Xi/xg;
-  s/\N{GREEK CAPITAL LETTER OMICRON}  /Omicron/xg;
-  s/\N{GREEK CAPITAL LETTER PI}       /Pi/xg;
-  s/\N{GREEK CAPITAL LETTER RHO}      /Rho/xg;
-  s/\N{GREEK CAPITAL LETTER SIGMA}    /Sigma/xg;
-  s/\N{GREEK CAPITAL LETTER TAU}      /Tau/xg;
-  s/\N{GREEK CAPITAL LETTER UPSILON}  /Upsilon/xg;
-  s/\N{GREEK CAPITAL LETTER PHI}      /Phi/xg;
-  s/\N{GREEK CAPITAL LETTER CHI}      /Chi/xg;
-  s/\N{GREEK CAPITAL LETTER PSI}      /Psi/xg;
-  s/\N{GREEK CAPITAL LETTER OMEGA}    /Omega/xg;
-
-  # join word-word (dash) where one word may be a number
-  s/(\p{L})-([\p{L}\p{N}])/\1\2/g;
-  s/(\p{N})-(\p{L})/\1\2/g;
+  s/\N{Alpha}/Alpha/g;
+  s/\N{Beta}/Beta/g;
+  s/\N{Gamma}/Gamma/g;
+  s/\N{Delta}/Delta/g;
+  s/\N{Epsilon}/Epsilon/g;
+  s/\N{Zeta}/Zeta/g;
+  s/\N{Eta}/Eta/g;
+  s/\N{Theta}/Theta/g;
+  s/\N{Iota}/Iota/g;
+  s/\N{Kappa}/Kappa/g;
+  s/\N{Lamda}/Lamda/g;
+  s/\N{Mu}/Mu/g;
+  s/\N{Nu}/Nu/g;
+  s/\N{Xi}/Xi/g;
+  s/\N{Omicron}/Omicron/g;
+  s/\N{Pi}/Pi/g;
+  s/\N{Rho}/Rho/g;
+  s/\N{Sigma}/Sigma/g;
+  s/\N{Tau}/Tau/g;
+  s/\N{Upsilon}/Upsilon/g;
+  s/\N{Phi}/Phi/g;
+  s/\N{Chi}/Chi/g;
+  s/\N{Psi}/Psi/g;
+  s/\N{Omega}/Omega/g;
 
   # TOKENIZATION:
-  # separate word, symbol and number tokens
-  s/(\p{L}+|\p{N}+(?:[\.,]\p{N}+)*|\S)/ \1 /g;
+  # separate alphanumeric, numeric, and symbolic tokens
+  s/((?:\p{L}[\p{L}\p{N}\.-]*)|(?<!\p{N})-?\p{N}+(?:[\.,]\p{N}+)*|\S)/\1 /g;
+  # clean-up: separate trailing dots and dashes in alphanumeric tokens
+  s/(\p{L}[\p{L}\p{N}\.-]*)([\.-]) /\1 \2 /g;
 
-  s/ \. / /g;  # remove "lone" dot tokens
+  if ($NORMAL) {
+    s/ [\.-] / /g;  # remove "lone" dot and slash tokens
+    $_=lc;  # lower-case all text
+  }
 
-  # clean up remaining space mess
+  # clean up the resulting space mess
   s/ {2,}/ /g;
   s/^ //;
   s/ \n$/\n/;
+
 
   print;
 }
