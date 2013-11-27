@@ -12,7 +12,7 @@ import sys
 from os.path import basename
 from nltk.tokenize.punkt import PunktSentenceTokenizer
 
-if len(sys.argv) == 2 and sys.argv[1] in ('-h', '--help'):
+if len(sys.argv) == 1 or (len(sys.argv) == 2 and sys.argv[1] in ('-h', '--help')):
     print('usage: {} PARAMS < TEXT > SENTENCES'.format(basename(sys.argv[0])))
     sys.exit(1)
 
