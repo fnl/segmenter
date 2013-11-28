@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# this script extracts token variants of type "T1_T2" and "T1-T2"
+# this script extracts composite tokens of the form "T1_T2" and "T1-T2"
 
 # Auhtor: Florian Leitner <florian.leitner@gmail.com>
 # (C) 2013. All rights reserved.
