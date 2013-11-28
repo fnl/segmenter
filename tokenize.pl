@@ -13,30 +13,36 @@ if ($#ARGV == 0 && $ARGV[0] =~/-h|--help/) {
   exit 1;
 }
 
+use XML::Entities qw( decode );
 use charnames 'greek';
 use open ':locale';
+use utf8;
 
-my $NORMAL = ($#ARGV > -1 && $ARGV[0] =~ '--normal');
-shift @ARGV if ($#ARGV > -1 && $ARGV[0] =~ '--normal');
+
+my $normal = 0;
+
+if ($#ARGV > -1 && $ARGV[0] =~ /^--normal$/) {
+  $normal = 1;
+  shift;
+}
 
 while (<>) {
   # debugging output
   #print "--------------------------\n";
   #print;
 
-  # decode a few infrequently contaminating XML entities
-  s/&amp;/&/g;
-  s/&lt;/</g;
-  s/&gt;/>/g;
-  s/&nbsp;/ /g;
-
   # fix common "impurities"
-  s/<\/?\w+>//g;  # remove infrequent HTML tag "contamination"
-  s/'s\b//g;  # drop apostrophe-s
-  s/n't\b/ not/g;  # fix "...n't" contractions
+  $_ = XML::Entities::decode('all', $_);  # decode XML entities
+  s/<\/?\w+>//g;  # remove infrequent simple HTML tag "contamination"
+  s/’’/”/g;  # normalize two right single quotes
+  s/‘‘/“/g;  # normalize two left single quotes 
+  s/‚‚/„/g;  # normalize two lower single quotes
+  s/’/'/g;   # normalize apostrophe usage
+  s/''/"/g;  # normalize two single quotes 
+  s/(?<=\w)n't\b/ not/g;  # fix "...n't" contractions
 
-  # basic space normalization
-  s/[\t\xA0_]/ /g;
+  # basic space normalization: tabs and non-breaking spaces
+  s/[\t\xA0]/ /g;
 
   # translate Greek letters to latin names
   s/\N{alpha}/alpha/g;
@@ -56,7 +62,7 @@ while (<>) {
   s/\N{omicron}/omicron/g;
   s/\N{pi}/pi/g;
   s/\N{rho}/rho/g;
-  s/\N{final sigma}/sigma/g;
+  s/\N{final sigma}/sigmaf/g;
   s/\N{sigma}/sigma/g;
   s/\N{tau}/tau/g;
   s/\N{upsilon}/upsilon/g;
@@ -92,20 +98,25 @@ while (<>) {
 
   # TOKENIZATION:
   # separate alphanumeric, numeric, and symbolic tokens
-  s/((?:\p{L}[\p{L}\p{N}\.-]*)|(?<!\p{N})-?\p{N}+(?:[\.,]\p{N}+)*|\S)/\1 /g;
-  # clean-up: separate trailing dots and dashes in alphanumeric tokens
-  s/(\p{L}[\p{L}\p{N}\.-]*)([\.-]) /\1 \2 /g;
+  s/((?:\p{L}[\p{L}\p{N}_'\.-]*)|(?<!\p{N})-?\p{N}+(?:[\.,]\p{N}+)*|\S)/\1 /g;
 
-  if ($NORMAL) {
-    s/ [\.-] / /g;  # remove "lone" dot and slash tokens
-    $_=lc;  # lower-case all text
+  if ($normal) {
+    # remove trailing dots and dashes in alphanumeric tokens
+    s/(\p{L}[\p{L}\p{N}\.-]*)[\.-] /\1 /g;
+    s/ [\.-] / /g;  # prune "lone" dot and slash tokens
+    s/(?<=\w)'s\b|(?<=\w)'(?=\W)//g;  # drop apostrophe/apostrophe-s
+    $_=lc;  # finally, lower-case all text
+  } else {
+    # separate trailing dashes in alphanumeric tokens
+    s/(\p{L}[\p{L}\p{N}\.-]*)- /\1 - /g;
+    # separate sentence terminal dot from last token
+    s/(\p{L}[\p{L}\p{N}\.-]*)(\. [^\p{L}]{0,3})$/\1 \2/g;
   }
 
-  # clean up the resulting space mess
+  # clean up any resulting multi-space mess
   s/ {2,}/ /g;
   s/^ //;
   s/ \n$/\n/;
-
 
   print;
 }
