@@ -15,7 +15,7 @@
 use strict;
 use File::Basename;
 my $prog = basename($0);
-if ($#ARGV != 1 || $ARGV[0] =~/-h|--help/) {
+if ($#ARGV < 0 || $ARGV[0] =~/-h|--help/) {
   print STDERR "usage: $prog [UNIQ]COMPOSITES < TOKENS > TSV_MAPPINGS\n";
   exit 1;
 }
@@ -36,7 +36,6 @@ open my $handle, '<', $path || die "could not open COMPOSITES at $path: $!";
 foreach (<$handle>) {
   chomp;
   push(@composites, $_);
-  $_ = " $_ ";
   # com-posite
   $dict->insert($_, 0);
   $counts{$_} = 0;
@@ -45,24 +44,17 @@ foreach (<$handle>) {
   $dict->insert($_, 0);
   $counts{$_} = 0;
   tr/ //d;
-  $_ = " $_ ";
   # unigram
   $dict->insert($_, 0);
   $counts{$_} = 0;
 }
 
-my %dump = $dict->dump();
 close $handle;
 
 while (<>) {
   chomp;
-  $_ = " $_ ";
   foreach my $hit ($dict->scan($_)) {
-    if ($hit) {
-      $hit =~ s/^ //;
-      $hit =~ s/ $//;
-      $counts{$hit}++;
-    }
+    $counts{$hit}++ if $hit;
   }
 }
 

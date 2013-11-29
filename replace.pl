@@ -9,7 +9,7 @@
 use strict;
 use File::Basename;
 my $prog = basename($0);
-if ($#ARGV == 0 && $ARGV[0] =~/-h|--help/) {
+if ($#ARGV < 0 || $ARGV[0] =~/-h|--help/) {
   print STDERR "usage: $prog TSV_MAPPINGS < TOKENS > MAPPED_TOKENS\n";
   exit 1;
 }
@@ -32,7 +32,6 @@ close $handle;
 while (<>) {
   my %hits = $mappings->scan($_);
   while ((my $from, my $to) = each %hits) {
-    #print "MAPPING '$from'->'$to'\n";
     s/\b$from\b/$to/g;
   }
   print;

@@ -116,6 +116,5 @@ while (<>) {
   # clean up any resulting multi-space mess
   s/ {2,}/ /g;
 
-  print " ";
   print;
 }
