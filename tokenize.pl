@@ -10,7 +10,7 @@ use File::Basename;
 my $prog = basename($0);
 if ($#ARGV == 0 && $ARGV[0] =~/-h|--help/) {
   print STDERR "usage: $prog [--normal] < SENTENCES > TOKENS\n\n";
-  print SDERRR "Normalization: lowercase, strip most dots and dashes, remove apostrophes\n";
+  print STDERR "Normalization: lowercase, strip most dots and dashes, remove apostrophes\n";
   exit 1;
 }
 
@@ -41,8 +41,8 @@ while (<>) {
   s/''/"/g;  # normalize two single quotes 
   s/(?<=\w)n't\b/ not/g;  # fix "...n't" contractions
 
-  # basic space normalization: tabs and non-breaking spaces
-  tr/\t\xA0/  /;
+  # basic space normalization: non-breaking spaces
+  tr/\xA0/ /;
 
   # translate Greek letters to latin names
   s/\N{alpha}/alpha/g;
@@ -98,19 +98,19 @@ while (<>) {
 
   # TOKENIZATION:
   # separate alphanumeric, numeric, and symbolic tokens
-  s/((?:\p{L}[\p{L}\p{N}_'\.-]*)|(?<!\p{N})-?\p{N}+(?:[\.,]\p{N}+)*|\S)/\1 /g;
+  s/((?:\p{L}[\p{L}\p{N}_'\.-]*)|(?<!\p{N})-?\p{N}+(?:[\.,]\p{N}+)*|\S)/$1 /g;
 
   if ($normal) {
     # remove trailing dots and dashes in alphanumeric tokens
-    s/(?<=\p{L}[\p{L}\p{N}\.-]*)[\.-] / /g;
+    s/(\p{L}[\p{L}\p{N}\.-]*)[\.-] /$1 /g;
     s/ [\.-] / /g;  # prune "lone" dot and slash tokens
     s/(?<=\w)'s\b|(?<=\w)'(?=\W)//g;  # drop apostrophe/apostrophe-s
     $_=lc;  # finally, lower-case all text
   } else {
     # separate trailing dashes in alphanumeric tokens
-    s/(\p{L}[\p{L}\p{N}\.-]*)- /\1 - /g;
+    s/(\p{L}[\p{L}\p{N}\.-]*)- /$1 - /g;
     # separate sentence terminal dot from last token
-    s/(\p{L}[\p{L}\p{N}\.-]*)(\. [^\p{L}]{0,3})$/\1 \2/g;
+    s/(\p{L}[\p{L}\p{N}\.-]*)(\. [^\p{L}]{0,3})$/$1 $2/g;
   }
 
   # clean up any resulting multi-space mess
