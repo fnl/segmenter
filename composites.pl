@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-# this script extracts composite tokens of the form "T1_T2" and "T1-T2"
+# this script extracts composite tokens of the form "T1_T2", "T1.T2" and "T1-T2"
 
 # Auhtor: Florian Leitner <florian.leitner@gmail.com>
 # (C) 2013. All rights reserved.
@@ -16,10 +16,10 @@ if ($#ARGV == 0 && $ARGV[0] =~/-h|--help/) {
 use open ':locale';
 
 while (<>) {
-  if (/[_-]/) {
+  if (/[_.-]/) {
     @words = split;
     foreach (@words) {
-      print "$_\n" if (/[\p{L}\p{N}][_-][\p{L}\p{N}]/); 
+      print "$_\n" if (/[\p{L}\p{N}][_.-][\p{L}\p{N}]/); 
     }
   }
 }
