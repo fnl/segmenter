@@ -103,7 +103,7 @@ while (<>) {
         my $term_b = $hits_b[$b];
 
         # filter self-interactions
-        if ($term_a != $term_b) {
+        if ($term_a ne $term_b) {
           my $ref_ids_b = $hits_b[$b+1];
 
           for my $id_a (@$ref_ids_a) {
