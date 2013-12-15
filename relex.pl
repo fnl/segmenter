@@ -56,19 +56,17 @@ sub expandDict {
     $term =~ tr/ _.-//d;  # IGNORE 2/2
 
     # filter numbers and short terms
-    if ($term =~ /\d+/ || length($term) < 3) {
-      continue
-    }
+    if ($term !~ /\d+/ && length($term) > 2) {
+      if ($dict->has($term)) {
+        my $ref_ids = $dict->val($term);
 
-    if ($dict->has($term)) {
-      my $ref_ids = $dict->val($term);
-
-      unless (grep(/^$term_id$/,  @$ref_ids)) {
-        push @$ref_ids, $term_id; 
+        unless (grep(/^$term_id$/,  @$ref_ids)) {
+          push @$ref_ids, $term_id; 
+        }
+      } else {
+        my @term_ids = ($term_id);
+        $dict->insert($term, \@term_ids);
       }
-    } else {
-      my @term_ids = ($term_id);
-      $dict->insert($term, \@term_ids);
     }
   }
 }
