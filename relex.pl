@@ -10,7 +10,7 @@ use strict;
 use File::Basename;
 my $prog = basename($0);
 if ($#ARGV < 0 || $ARGV[0] =~/-h|--help/) {
-  print STDERR "usage: $prog TERMID_TERMS_TSV TERMID_PAIRS < SENTENCES > HITS\n";
+  print STDERR "usage: $prog TERMID_TERMS_TSV STOPTERMS TERMID_PAIRS < SENTENCES > HITS\n";
   exit 1;
 }
 
@@ -20,6 +20,7 @@ use open ':locale';
 use utf8;
 
 my %pairs;
+my %stopterms;
 my %term_a_ids;
 my %term_b_ids;
 my $dict_a = new Text::Scan;
@@ -27,6 +28,13 @@ my $dict_b = new Text::Scan;
 open my $term_dict, '<', shift || die "could not open TERMID_TERMS_TSV file: $!";
 $dict_a->ignore(" ._-");  # IGNORE 1/2
 $dict_b->ignore(" ._-");  # IGNORE 1/2
+open my $stoplist, '<', shift || die "could not open STOPTERMS file: $!";
+
+foreach (<$stoplist>)  {
+  chomp;
+  $stopterms{$_} = 1;
+}
+
 open my $term_pairs, '<', shift || die "could not open TERMID_PAIRS file: $!";
 
 foreach (<$term_pairs>) {
@@ -46,6 +54,11 @@ sub expandDict {
 
   foreach my $term (@$ref_terms) {
     $term =~ tr/ _.-//d;  # IGNORE 2/2
+
+    # filter numbers and short terms
+    if ($term =~ /\d+/ || length($term) < 3) {
+      continue
+    }
 
     if ($dict->has($term)) {
       my $ref_ids = $dict->val($term);
@@ -90,12 +103,16 @@ while (<>) {
 
       for (my $b = 0; $b <= $#hits_b; $b += 2) {
         my $term_b = $hits_b[$b];
-        my $ref_ids_b = $hits_b[$b+1];
 
-        for my $id_a (@$ref_ids_a) {
-          for my $id_b (@$ref_ids_b) {
-            if (exists $pairs{"$id_a\t$id_b"}) {
-              print "$line\t$id_a\t$term_a\t$id_b\t$term_b\n";
+        # filter self-interactions
+        if ($term_a != $term_b) {
+          my $ref_ids_b = $hits_b[$b+1];
+
+          for my $id_a (@$ref_ids_a) {
+            for my $id_b (@$ref_ids_b) {
+              if (exists $pairs{"$id_a\t$id_b"}) {
+                print "$line\t$id_a\t$term_a\t$id_b\t$term_b\n";
+              }
             }
           }
         }
