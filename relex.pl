@@ -32,12 +32,9 @@ open my $term_pairs, '<', shift || die "could not open TERMID_PAIRS file: $!";
 foreach (<$term_pairs>) {
   chomp;
   my @items = split /\t/;
-  print STDERR "adding pair: $items[0] <-> $items[1]\n";
   $pairs{$_}++;
   $term_a_ids{$items[0]}++;
-  print STDERR "adding term id a: $items[0]\n";
   $term_b_ids{$items[1]}++;
-  print STDERR "adding term id b: $items[1]\n";
 }
 
 close $term_pairs;
@@ -69,12 +66,10 @@ foreach (<$term_dict>) {
   my $term_id = shift(@terms);
 
   if (exists $term_a_ids{$term_id}) {
-    print STDERR "adding term a: $term_id -> @terms\n";
     expandDict($dict_a, $term_id, \@terms);
   }
 
   if (exists $term_b_ids{$term_id}) {
-    print STDERR "adding term b: $term_id -> @terms\n";
     expandDict($dict_b, $term_id, \@terms);
   }
 }
