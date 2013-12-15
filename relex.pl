@@ -26,12 +26,13 @@ my %term_b_ids;
 my $dict_a = new Text::Scan;
 my $dict_b = new Text::Scan;
 open my $term_dict, '<', shift || die "could not open TERMID_TERMS_TSV file: $!";
-$dict_a->ignore(" ._-");  # IGNORE 1/2
-$dict_b->ignore(" ._-");  # IGNORE 1/2
+$dict_a->ignore(" ._-");  # IGNORE 1/3
+$dict_b->ignore(" ._-");  # IGNORE 1/3
 open my $stoplist, '<', shift || die "could not open STOPTERMS file: $!";
 
 foreach (<$stoplist>)  {
   chomp;
+  tr/ _.-//d;  # IGNORE 2/3
   $stopterms{$_} = 1;
 }
 
@@ -53,10 +54,10 @@ sub expandDict {
   my $ref_terms = shift;
 
   foreach my $term (@$ref_terms) {
-    $term =~ tr/ _.-//d;  # IGNORE 2/2
+    $term =~ tr/ _.-//d;  # IGNORE 3/3
 
-    # filter numbers and short terms
-    if ($term !~ /\d+/ && length($term) > 2) {
+    # filter stopwords, numbers and short terms
+    unless (exists($stopterms{$term}) || $term =~ /\d+/ || length($term) < 3) {
       if ($dict->has($term)) {
         my $ref_ids = $dict->val($term);
 
