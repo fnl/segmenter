@@ -109,7 +109,7 @@ while (<>) {
 
           for my $id_a (@$ref_ids_a) {
             for my $id_b (@$ref_ids_b) {
-              if (exists $pairs{"$id_a\t$id_b"}) {
+              if ($id_a ne $id_b && exists $pairs{"$id_a\t$id_b"}) {
                 print "$line\t$id_a\t$term_a\t$id_b\t$term_b\n";
               }
             }
